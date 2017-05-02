@@ -9,13 +9,35 @@
     $Nodes | Expand-QCSoftwareZipPackage
     $Nodes | Invoke-ProcessWCSTemplateFiles
     $Nodes | New-QCSoftwareShare
-    $Nodes | Install-WCSServiceManager
-    $Nodes | Start-WCSServiceManagerService
     $Nodes | New-WCSShortcut
     $Nodes | Set-WCSBackground
+    $Nodes | Install-WCSServiceManager
+    $Nodes | Start-WCSServiceManagerService
     $Nodes | New-WCSJavaApplicationFirewallRules
     $Nodes | Install-WCSPrinters -PrintEngineOrientationRelativeToLabel Top
     $Nodes | Install-WCSPrinters -PrintEngineOrientationRelativeToLabel Bottom
+}
+
+function Update-QcSoftwareFiles {
+    param (
+        [Parameter(ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(ValueFromPipelineByPropertyName)]$EnvironmentName
+    )
+    process {
+        Stop-WCSServiceManagerService -ComputerName $ComputerName
+        Remove-QCSoftwareShare -ComputerName $ComputerName
+        $QCSoftwarePathRemote = Get-WCSJavaApplicationRootDirectory -RemotePath -ComputerName $ComputerName
+        $ArchivePath = "$($QCSoftwarePathRemote | Split-Path)\Archive"
+        New-Item -ItemType Directory -Force -Path $ArchivePath 
+        Move-Item -Path $QCSoftwarePathRemote -Destination "$($QCSoftwarePathRemote | Split-Path)\Archive"
+        Remove-QCSoftwareZipPackage -ComputerName $ComputerName
+        Expand-QCSoftwareZipPackage -ComputerName $ComputerName
+        Invoke-ProcessWCSTemplateFiles -ComputerName $ComputerName -EnvironmentName $EnvironmentName
+        New-QCSoftwareShare -ComputerName $ComputerName
+        New-WCSShortcut -ComputerName $ComputerName
+        Set-WCSBackground -ComputerName $ComputerName -EnvironmentName $EnvironmentName
+        Start-WCSServiceManagerService -ComputerName $ComputerName
+    }
 }
 
 function Set-WCSSystemParameterCS_ServerBasedOnNode {
@@ -54,6 +76,18 @@ function Start-WCSServiceManagerService {
     process {
         Invoke-Command -ComputerName $ComputerName -ScriptBlock {
             Start-Service -Name servicemgr
+        }
+    }
+}
+
+function Stop-WCSServiceManagerService {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        $Force
+    )
+    process {
+        Invoke-Command -ComputerName $ComputerName -ScriptBlock {
+            Stop-Service -Name servicemgr -Force:$Force
         }
     }
 }
@@ -106,8 +140,28 @@ function New-QCSoftwareShare {
     }  
 }
 
+function Remove-QCSoftwareShare {
+    param (
+        [Parameter(ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    process {
+        Invoke-Command -ComputerName $ComputerName -ScriptBlock {
+            Get-SmbShare -Name QcSoftware | Remove-SmbShare -Force
+        }
+    }  
+}
+
 function Get-WCSJavaApplicationRootDirectory {
-    "C:\QcSoftware"
+    param (
+        [Parameter(ParameterSetName="RemotePath")][Switch]$RemotePath,
+        [Parameter(ParameterSetName="RemotePath")]$ComputerName
+    )
+    $Path = "C:\QcSoftware"
+    if ($RemotePath) {
+        $Path | ConvertTo-RemotePath -ComputerName $ComputerName
+    } else {
+        $Path
+    }
 }
 
 function Set-WCSEnvironmentVariables {
@@ -194,14 +248,34 @@ function Add-PathToEnvironmentVariablePath {
     }
 }
 
+function Compress-QCSoftwarePath {
+    param (
+        [Parameter(Mandatory)]$Path
+    )
+    $ZipFileName = "QcSoftware.zip"
+    $ZipFilePathRemote = "$(Get-WCSJavaApplicationGitRepositoryPath)\$ZipFileName"
+    Compress-Archive -Path $Path -DestinationPath $ZipFilePathRemote
+
+    #$QCSoftwareFilesAndDirectoriesToZip = Get-ChildItem -Path $Path -Recurse |
+    #where {
+    #    -not ($_.FullName -match "QcSoftware\\Tmp" -and -not $_.PsIsContainer)
+    #} |
+    #where {
+    #    -not ($_.FullName -match "QcSoftware\\Log\\Tmp\\Backup" -and -not $_.PsIsContainer)
+    #} |
+    #where Name -NE "WCS (wcs01).lnk"
+    #$progressPreference = 'silentlyContinue'
+    #Compress-Archive -Path $QCSoftwareFilesAndDirectoriesToZip.FullName -DestinationPath $ZipFilePathRemote
+    #$progressPreference = 'Continue'
+}
+
 function Expand-QCSoftwareZipPackage {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName        
     )
     begin {
-        $ADDomain = Get-ADDomain -Current LocalComputer
         $ZipFileName = "QcSoftware.zip"
-        $ZipFilePathRemote = "\\$($ADDomain.DNSRoot)\applications\GitRepository\WCSJavaApplication\$ZipFileName"
+        $ZipFilePathRemote = "$(Get-WCSJavaApplicationGitRepositoryPath)\$ZipFileName"
         $ZipFileCopyPathLocal = "C:\ProgramData\TervisWCS\"
         $ExtractPath = Get-WCSJavaApplicationRootDirectory        
     }
@@ -217,6 +291,20 @@ function Expand-QCSoftwareZipPackage {
                 Expand-Archive -Path "$Using:ZipFileCopyPathLocal\$Using:ZipFileName" -DestinationPath $Using:ExtractPath -Force
             }
         }
+    }
+}
+
+function Remove-QCSoftwareZipPackage {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName        
+    )
+    begin {
+        $ZipFileName = "QcSoftware.zip"
+        $ZipFileCopyPathLocal = "C:\ProgramData\TervisWCS\"
+    }
+    process {
+        $ZipFileCopyPathRemote = $ZipFileCopyPathLocal | ConvertTo-RemotePath -ComputerName $ComputerName
+        Remove-Item -Path $ZipFileCopyPathRemote\$ZipFileName
     }
 }
 
