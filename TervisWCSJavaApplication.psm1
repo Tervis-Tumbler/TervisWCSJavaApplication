@@ -415,13 +415,13 @@ function Install-WCSScheduledTasks {
     }
     process {
         Install-TervisScheduledTask -Credential $SystemCredential `
-            -ScheduledTaskName "Nightly Cleanup" `
-            -ScheduledTaskActionExecuteFilePath $WCSScheduledProgramsDirectory\nightlyCleanup.cmd `
+            -TaskName "Nightly Cleanup" `
+            -Execute $WCSScheduledProgramsDirectory\nightlyCleanup.cmd `
             -RepetitionIntervalName "EveryDayAt2AM" `
             -ComputerName $ComputerName
         Install-TervisScheduledTask -Credential $SystemCredential `
-            -ScheduledTaskName "Reopen Daily Logs" `
-            -ScheduledTaskActionExecuteFilePath $WCSScheduledProgramsDirectory\dailyLogsReopen.cmd `
+            -TaskName "Reopen Daily Logs" `
+            -Execute $WCSScheduledProgramsDirectory\dailyLogsReopen.cmd `
             -RepetitionIntervalName "EveryDayAt5amEvery3HoursFor18Hours" `
             -ComputerName $ComputerName
     }
