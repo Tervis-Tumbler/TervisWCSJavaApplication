@@ -404,3 +404,25 @@ function Get-WCSLogFileTail {
         Get-Content -Tail $Tail -Path $_.FullName 
     }
 }
+
+function Install-WCSScheduledTasks {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    begin {
+        $WCSScheduledProgramsDirectory = "$(Get-WCSJavaApplicationRootDirectory)\Bin"
+        $SystemCredential = New-Object System.Management.Automation.PSCredential ('System',(New-Object System.Security.SecureString))        
+    }
+    process {
+        Install-TervisScheduledTask -Credential $SystemCredential `
+            -ScheduledTaskName "Nightly Cleanup" `
+            -ScheduledTaskActionExecuteFilePath $WCSScheduledProgramsDirectory\nightlyCleanup.cmd `
+            -RepetitionIntervalName "EveryDayAt2AM" `
+            -ComputerName $ComputerName
+        Install-TervisScheduledTask -Credential $SystemCredential `
+            -ScheduledTaskName "Reopen Daily Logs" `
+            -ScheduledTaskActionExecuteFilePath $WCSScheduledProgramsDirectory\dailyLogsReopen.cmd `
+            -RepetitionIntervalName "EveryDayAt5amEvery3HoursFor18Hours" `
+            -ComputerName $ComputerName
+    }
+}
