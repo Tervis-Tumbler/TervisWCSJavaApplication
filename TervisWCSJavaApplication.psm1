@@ -16,6 +16,7 @@
     $Nodes | New-WCSJavaApplicationFirewallRules
     $Nodes | Install-WCSPrinters -PrintEngineOrientationRelativeToLabel Top
     $Nodes | Install-WCSPrinters -PrintEngineOrientationRelativeToLabel Bottom
+    $Nodes | Install-WCSScheduledTasks
 }
 
 function Update-QcSoftwareFiles {
