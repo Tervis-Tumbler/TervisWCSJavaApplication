@@ -340,32 +340,6 @@ function Remove-WCSServiceManager {
     }
 }
 
-function Set-WCSProfileBat {
-    param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$EnvironmentName
-    )
-    begin {
-        $RootDirectory = Get-WCSJavaApplicationRootDirectory
-        $ProfileTemplateFile = "$(Get-WCSJavaApplicationGitRepositoryPath)\Profile.bat.pstemplate"
-    }
-    process {
-        $WCSEnvironmentState = Get-WCSEnvironmentState -EnvironmentName $EnvironmentName
-        $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID $WCSEnvironmentState.SybaseQCUserPasswordEntryID
-        $Global:DATABASE_MACHINE = $SybaseDatabaseEntryDetails.Host
-        $Global:DATABASE_NAME = $SybaseDatabaseEntryDetails.DatabaseName
-        $Global:QCCS_DB_NAME = $SybaseDatabaseEntryDetails.DatabaseName
-        $Global:DATABASE_PORT = $SybaseDatabaseEntryDetails.Port
-
-        $RootDirectoryRemote = $RootDirectory | ConvertTo-RemotePath -ComputerName $ComputerName
-        $Global:ComputerName = $ComputerName
-
-        $ProfileTemplateFile | 
-        Invoke-ProcessTemplateFile |
-        Out-File -Encoding ascii -NoNewline "$RootDirectoryRemote\profile.bat"
-    }
-}
-
 function Invoke-ProcessWCSTemplateFiles {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
