@@ -385,6 +385,7 @@ function Invoke-ProcessWCSTemplateFiles {
             DATABASE_PORT = $SybaseDatabaseEntryDetails.Port
             ComputerName = $ComputerName
             EnvironmentName = $EnvironmentName
+            WCSJavaApplicationRootDirectory = $RootDirectory
         }
 
         $RootDirectoryRemote = $RootDirectory | ConvertTo-RemotePath -ComputerName $ComputerName
