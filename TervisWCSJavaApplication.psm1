@@ -402,3 +402,19 @@ function Install-WCSScheduledTasks {
             -ComputerName $ComputerName
     }
 }
+
+function Install-WCSJavaRemoteAppClient {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$EnvironmentName
+    )
+    begin {
+        $ADDomain = Get-ADDomain -Current LocalComputer | select -ExpandProperty DNSRoot
+    }
+    process {
+        $TemplateVariables = @{
+            WCSJavaApplicationServer = "WCSApp.$EnvironmentName.$ADDomain"
+        }
+        Invoke-ProcessTemplatePath -Path $PSScriptRoot\Templates -DestinationPath \\$ComputerName\C$ -TemplateVariables $TemplateVariables
+    }
+}

@@ -1,0 +1,1 @@
+powershell -noprofile -command "& {Start-Process -FilePath \\$WCSJavaApplicationServer\QcSoftware\Bin\runScreens.cmd -ArgumentList '-q -p \\$WCSJavaApplicationServer\QcSoftware -n %COMPUTERNAME%'}"
