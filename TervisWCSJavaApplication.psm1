@@ -413,7 +413,7 @@ function Install-WCSJavaRemoteAppClient {
     }
     process {
         $TemplateVariables = @{
-            WCSJavaApplicationServer = "WCSApp.$EnvironmentName.$ADDomain"
+            WCSJavaApplicationServer = "WCSJavaApplication.$EnvironmentName.$ADDomain"
         }
         Invoke-ProcessTemplatePath -Path $PSScriptRoot\Templates -DestinationPath \\$ComputerName\C$ -TemplateVariables $TemplateVariables
     }
