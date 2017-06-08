@@ -416,7 +416,6 @@ function Install-WCSJavaRemoteAppClient {
         }
     }
     process {
-
         Invoke-ProcessTemplatePath -Path $PSScriptRoot\Templates -DestinationPath \\$ComputerName\C$ -TemplateVariables $TemplateVariables
     }
 }
