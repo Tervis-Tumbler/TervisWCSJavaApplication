@@ -1,0 +1,1 @@
+powershell -noprofile -command "& {Start-Process (Get-ChildItem -Path \\$DLTWCSJavaApplicationServer\QcSoftware -Filter WCS*.lnk).FullName}"

@@ -410,11 +410,14 @@ function Install-WCSJavaRemoteAppClient {
     )
     begin {
         $ADDomain = Get-ADDomain -Current LocalComputer | select -ExpandProperty DNSRoot
+        $TemplateVariables = @{
+            DLTWCSJavaApplicationServer = "WCSJavaApplication.Delta.$ADDomain"
+            EPSWCSJavaApplicationServer = "WCSJavaApplication.Epsilon.$ADDomain"
+            PRDWCSJavaApplicationServer = "WCSJavaApplication.Production.$ADDomain"
+        }
     }
     process {
-        $TemplateVariables = @{
-            WCSJavaApplicationServer = "WCSJavaApplication.$EnvironmentName.$ADDomain"
-        }
+
         Invoke-ProcessTemplatePath -Path $PSScriptRoot\Templates -DestinationPath \\$ComputerName\C$ -TemplateVariables $TemplateVariables
     }
 }
