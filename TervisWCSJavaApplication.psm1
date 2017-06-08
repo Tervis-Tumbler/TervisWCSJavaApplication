@@ -405,8 +405,7 @@ function Install-WCSScheduledTasks {
 
 function Install-WCSJavaRemoteAppClient {
     param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$EnvironmentName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
     )
     begin {
         $ADDomain = Get-ADDomain -Current LocalComputer | select -ExpandProperty DNSRoot
