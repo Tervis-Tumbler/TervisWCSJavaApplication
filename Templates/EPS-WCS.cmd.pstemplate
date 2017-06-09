@@ -1,1 +1,1 @@
-powershell -noprofile -command "Start-Process (Get-ChildItem -Path $EPSWCSJavaApplicationServer\QcSoftware -Filter WCS*.lnk).FullName"
+powershell -noprofile -command "Start-Process (Get-ChildItem -Path \\$EPSWCSJavaApplicationServer\QcSoftware -Filter WCS*.lnk).FullName"
