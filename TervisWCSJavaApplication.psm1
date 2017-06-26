@@ -419,3 +419,46 @@ function Install-WCSJavaRemoteAppClient {
         Invoke-ProcessTemplatePath -Path $PSScriptRoot\Templates -DestinationPath \\$ComputerName\C$ -TemplateVariables $TemplateVariables
     }
 }
+
+function Install-TervisWCSShortcutOnShippingComputers {
+    param (
+        [Parameter(Mandatory)]$ServerName
+    )
+    
+    $ShippingComputers = Get-ADComputer -Filter {Name -like "Ship*"}
+    foreach ($Computer in $ShippingComputers) {
+        try {
+            $RemotePublicDesktopWCSLink = "C:\Users\Public\Desktop\WCS ($ServerName).lnk" | ConvertTo-RemotePath -ComputerName $Computer.Name
+            if (Test-Path -Path $RemotePublicDesktopWCSLink) {
+                Remove-Item -Path $RemotePublicDesktopWCSLink -Force
+            }
+            Set-Shortcut -LinkPath $RemotePublicDesktopWCSLink -IconLocation "\\$ServerName\QcSoftware\Gif\tfIcon.ico,0" -TargetPath "\\$ServerName\QcSoftware\Bin\runScreens.cmd" -Arguments "-q -p \\$ServerName\QcSoftware -n %COMPUTERNAME%"
+            $Result = "Success"
+        } catch { $Result = "Fail" }
+        [PSCustomObject][Ordered]@{
+            ComputerName = $Computer.Name
+            Result = $Result
+        }
+    }
+}
+
+function Remove-TervisWCSShortcutOnShippingComputers {
+    param (
+        [Parameter(Mandatory)]$ServerName
+    )
+    
+    $ShippingComputers = Get-ADComputer -Filter {Name -like "Ship*"}
+    foreach ($Computer in $ShippingComputers) {
+        try {
+            $RemotePublicDesktopWCSLink = "C:\Users\Public\Desktop\WCS ($ServerName).lnk" | ConvertTo-RemotePath -ComputerName $Computer.Name
+            if (Test-Path -Path $RemotePublicDesktopWCSLink -ErrorAction Stop) {
+                Remove-Item -Path $RemotePublicDesktopWCSLink -Force
+            }
+        $Result = "Success"
+        } catch { $Result = "Fail" }
+        [PSCustomObject][Ordered]@{
+            ComputerName = $Computer.Name
+            Result = $Result
+        }
+    }
+}
