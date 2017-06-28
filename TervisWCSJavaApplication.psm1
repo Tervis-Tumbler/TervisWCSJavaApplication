@@ -462,3 +462,28 @@ function Remove-TervisWCSShortcutOnShippingComputers {
         }
     }
 }
+
+function Invoke-WCSJavaApplicationCutover {
+    param (
+        $ComputerName,
+        $OldComputerName,
+        $EnvironmentName
+    )
+
+    Stop-WCSServiceManagerService -ComputerName $OldComputerName
+    $OldService = Get-Service -Name servicemgr -ComputerName $OldComputerName
+    $OldService | Set-Service -StartupType Disabled
+
+    $OldComputerIPAddress = Resolve-DnsName $OldComputerName | select -ExpandProperty IPAddress
+    $Connections = Get-TervisSQLAnywhereConnection -EnvironmentName $EnvironmentName
+    
+    $Connections |
+    where NodAddr -EQ $OldComputerIPAddress |
+    Remove-TervisSQLAnywhereConnection -EnvironmentName $EnvironmentName
+    
+    Update-TervisWCSReferencesToComputerName -ComputerName $ComputerName -OldComputerName $OldComputerName -PasswordID 3459
+
+    $Service = Get-Service -Name servicemgr -ComputerName $ComputerName
+    $Service | Set-Service -StartupType Automatic
+    $Service | Start-Service
+}
