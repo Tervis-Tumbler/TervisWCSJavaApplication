@@ -340,6 +340,44 @@ function Remove-WCSServiceManager {
     }
 }
 
+function Get-QCPatcherUpdateZip {
+    param (
+        [Parameter(Mandatory)]$UpdateNumber
+    )
+    $UpdatesPath = "$(Get-WCSJavaApplicationGitRepositoryPath)\Updates"
+    
+    $ZipFile = Get-ChildItem -Filter "*.zip" -Path $UpdatesPath |
+    Where Name -Match $UpdateNumber
+
+    if ($ZipFile | Measure | Where Count -gt 1) {
+        Throw "More than one zipe file with $UpdateNumber in the name"
+    }
+
+    $ZipFile
+}
+
+function Invoke-QCPatcher {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(Mandatory)]$UpdateNumber
+    )
+    begin {
+        $UpdatesPendingPath = "$(Get-WCSJavaApplicationRootDirectory)\Updates\Pending"
+        $UpdatesPathRemote = "$(Get-WCSJavaApplicationGitRepositoryPath)\Updates"
+    }
+    process {
+        $UpdatesPendingPathRemote =  $UpdatesPendingPath | ConvertTo-RemotePath -ComputerName $ComputerName
+        $ZipFileRemote = Get-QCPatcherUpdateZip -UpdateNumber $UpdateNumber
+        Copy-Item -Path $ZipFileRemote.FullName -Destination $UpdatesPendingPathRemote
+
+        Invoke-Command -ComputerName $ComputerName -ScriptBlock {
+            Set-Location -Path $Using:UpdatesPendingPath
+            $ZipFileLocal = Get-ChildItem -Filter "*.zip"
+            cmd /V:ON /C "..\..\profile.bat && qcpatcher $($ZipFileLocal.Name)"
+        }
+    }
+}
+
 function Invoke-ProcessWCSTemplateFiles {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
