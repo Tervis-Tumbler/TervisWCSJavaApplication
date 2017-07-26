@@ -2,8 +2,8 @@
     param (
         $EnvironmentName
     )
-    Invoke-ClusterApplicationProvision -ClusterApplicationName WCSJavaApplication -EnvironmentName $EnvironmentName
-    $Nodes = Get-TervisClusterApplicationNode -ClusterApplicationName WCSJavaApplication -EnvironmentName $EnvironmentName
+    Invoke-ApplicationProvision -ApplicationName WCSJavaApplication -EnvironmentName $EnvironmentName
+    $Nodes = Get-TervisApplicationNode -ApplicationName WCSJavaApplication -EnvironmentName $EnvironmentName
     $Nodes | Add-WCSODBCDSN -ODBCDSNTemplateName Tervis
     $Nodes | Set-WCSEnvironmentVariables
     $Nodes | Expand-QCSoftwareZipPackage
