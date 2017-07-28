@@ -342,15 +342,15 @@ function Remove-WCSServiceManager {
 
 function Get-QCPatcherUpdateZip {
     param (
-        [Parameter(Mandatory)]$UpdateNumber
+        [Parameter(Mandatory)]$UpdateFileName
     )
     $UpdatesPath = "$(Get-WCSJavaApplicationGitRepositoryPath)\Updates"
     
     $ZipFile = Get-ChildItem -Filter "*.zip" -Path $UpdatesPath |
-    Where Name -Match $UpdateNumber
+    Where Name -Match $UpdateFileName
 
     if ($ZipFile | Measure | Where Count -gt 1) {
-        Throw "More than one zipe file with $UpdateNumber in the name"
+        Throw "More than one zipe file with $UpdateFileName in the name"
     }
 
     $ZipFile
@@ -359,7 +359,7 @@ function Get-QCPatcherUpdateZip {
 function Invoke-QCPatcher {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
-        [Parameter(Mandatory)]$UpdateNumber
+        [Parameter(Mandatory)]$UpdateFileName
     )
     begin {
         $UpdatesPendingPath = "$(Get-WCSJavaApplicationRootDirectory)\Updates\Pending"
@@ -367,7 +367,7 @@ function Invoke-QCPatcher {
     }
     process {
         $UpdatesPendingPathRemote =  $UpdatesPendingPath | ConvertTo-RemotePath -ComputerName $ComputerName
-        $ZipFileRemote = Get-QCPatcherUpdateZip -UpdateNumber $UpdateNumber
+        $ZipFileRemote = Get-QCPatcherUpdateZip -UpdateFileName $UpdateFileName
         Copy-Item -Path $ZipFileRemote.FullName -Destination $UpdatesPendingPathRemote
 
         Invoke-Command -ComputerName $ComputerName -ScriptBlock {
