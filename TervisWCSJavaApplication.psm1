@@ -62,6 +62,7 @@ function New-WCSJavaApplicationFirewallRules {
     process {
         New-TervisFirewallRule -ComputerName $ComputerName -DisplayName "WCS Control" -Group WCS -LocalPort 26000-26100 -Name "WCSControl" -Direction Inbound -Action Allow -Protocol tcp -Force:$Force
         New-TervisFirewallRule -ComputerName $ComputerName -DisplayName "WCS RMI" -Group WCS -LocalPort 26300-26400 -Name "WCSRMI" -Direction Inbound -Action Allow -Protocol tcp -Force:$Force
+        New-TervisFirewallRule -ComputerName $ComputerName -DisplayName "WCS RF Scanner" -Group WCS -LocalPort 26299 -Name "WCSRFScanner" -Direction Inbound -Action Allow -Protocol tcp -Force:$Force
     }
 }
 
@@ -525,3 +526,5 @@ function Invoke-WCSJavaApplicationCutover {
     $Service | Set-Service -StartupType Automatic
     $Service | Start-Service
 }
+
+
