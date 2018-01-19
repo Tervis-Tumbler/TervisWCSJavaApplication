@@ -111,14 +111,21 @@ function Set-WCSBackground {
 
 function New-WCSShortcut {
     param (
-        [Parameter(ValueFromPipelineByPropertyName)]$ComputerName
+        [Parameter(ValueFromPipelineByPropertyName)]$ComputerName,
+        $Path,
+        [Switch]$ExcludeComputerNameVariable
     )
     begin {
         $WCSJavaApplicationRootDirectory = Get-WCSJavaApplicationRootDirectory
     }
     process {
-        $WCSShortcutPath = $WCSJavaApplicationRootDirectory | ConvertTo-RemotePath -ComputerName $ComputerName
-        Set-Shortcut -LinkPath "$WCSShortcutPath\WCS ($ComputerName).lnk" -IconLocation "\\$ComputerName\QcSoftware\Gif\tfIcon.ico,0" -TargetPath "\\$ComputerName\QcSoftware\Bin\runScreens.cmd" -Arguments "-q -p \\$ComputerName\QcSoftware -n %COMPUTERNAME%"
+        $WCSShortcutPath = if ($Path) { 
+            $Path
+        } else { 
+            $WCSJavaApplicationRootDirectory | 
+            ConvertTo-RemotePath -ComputerName $ComputerName
+        }
+        Set-Shortcut -LinkPath "$WCSShortcutPath\WCS ($ComputerName).lnk" -IconLocation "\\$ComputerName\QcSoftware\Gif\tfIcon.ico,0" -TargetPath "\\$ComputerName\QcSoftware\Bin\runScreens.cmd" -Arguments "-q -p \\$ComputerName\QcSoftware$(if(-not $ExcludeComputerNameVariable) {" -n %COMPUTERNAME%"})"
     }
 }
 
