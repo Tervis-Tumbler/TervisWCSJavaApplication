@@ -351,7 +351,7 @@ function Get-QCPatcherUpdateZip {
     Where Name -Match $UpdateFileName
 
     if ($ZipFile | Measure | Where Count -gt 1) {
-        Throw "More than one zipe file with $UpdateFileName in the name"
+        Throw "More than one zip file with `"$UpdateFileName`" in the name"
     }
 
     $ZipFile
@@ -360,11 +360,15 @@ function Get-QCPatcherUpdateZip {
 function Invoke-QCPatcher {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
-        [Parameter(Mandatory)]$UpdateFileName
+        [Parameter(Mandatory)]$UpdateFileName,
+        [switch]$AcknowledgeWarning
     )
     begin {
+        Write-Warning "DO NOT BEGIN PATCHING PROCESS RIGHT BEFORE SCHEDULED MAINTENANCE OF SERVERS"
+        if (-not $AcknowledgeWarning) {
+            Read-Host "Press Enter to acknowledge"
+        }
         $UpdatesPendingPath = "$(Get-WCSJavaApplicationRootDirectory)\Updates\Pending"
-        $UpdatesPathRemote = "$(Get-WCSJavaApplicationGitRepositoryPath)\Updates"
     }
     process {
         $UpdatesPendingPathRemote =  $UpdatesPendingPath | ConvertTo-RemotePath -ComputerName $ComputerName
