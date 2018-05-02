@@ -388,6 +388,9 @@ function Invoke-QCPatcher {
             cmd /V:ON /C "..\..\profile.bat && qcpatcher $($ZipFileLocal.Name)"
         }
     }
+    end {
+        Write-Warning "Run Invoke-TervisDBUnloadToWCSGitRepository to generate SQL rebuild script and commit it with Git."
+    }
 }
 
 function Invoke-ProcessWCSTemplateFiles {
