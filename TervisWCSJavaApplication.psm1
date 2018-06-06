@@ -1,9 +1,11 @@
 ﻿function Invoke-WCSJavaApplicationProvision {
     param (
-        $EnvironmentName
+        [Parameter(Mandatory)]$EnvironmentName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath
     )
     Invoke-ApplicationProvision -ApplicationName WCSJavaApplication -EnvironmentName $EnvironmentName
     $Nodes = Get-TervisApplicationNode -ApplicationName WCSJavaApplication -EnvironmentName $EnvironmentName
+    $Nodes | Add-Member -MemberType NoteProperty -Name WCSJavaApplicationGitRepositoryPath -Value $WCSJavaApplicationGitRepositoryPath
     $Nodes | Add-WCSODBCDSN -ODBCDSNTemplateName Tervis
     $Nodes | Set-WCSEnvironmentVariables
     $Nodes | Expand-QCSoftwareZipPackage
@@ -22,7 +24,8 @@
 function Update-QcSoftwareFiles {
     param (
         [Parameter(ValueFromPipelineByPropertyName)]$ComputerName,
-        [Parameter(ValueFromPipelineByPropertyName)]$EnvironmentName
+        [Parameter(ValueFromPipelineByPropertyName)]$EnvironmentName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$WCSJavaApplicationGitRepositoryPath
     )
     process {
         Stop-WCSServiceManagerService -ComputerName $ComputerName
@@ -32,11 +35,11 @@ function Update-QcSoftwareFiles {
         New-Item -ItemType Directory -Force -Path $ArchivePath 
         Move-Item -Path $QCSoftwarePathRemote -Destination "$($QCSoftwarePathRemote | Split-Path)\Archive"
         Remove-QCSoftwareZipPackage -ComputerName $ComputerName
-        Expand-QCSoftwareZipPackage -ComputerName $ComputerName
-        Invoke-ProcessWCSTemplateFiles -ComputerName $ComputerName -EnvironmentName $EnvironmentName
+        Expand-QCSoftwareZipPackage -ComputerName $ComputerName -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath
+        Invoke-ProcessWCSTemplateFiles -ComputerName $ComputerName -EnvironmentName $EnvironmentName -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath
         New-QCSoftwareShare -ComputerName $ComputerName
         New-WCSShortcut -ComputerName $ComputerName
-        Set-WCSBackground -ComputerName $ComputerName -EnvironmentName $EnvironmentName
+        Set-WCSBackground -ComputerName $ComputerName -EnvironmentName $EnvironmentName -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath
         Start-WCSServiceManagerService -ComputerName $ComputerName
     }
 }
@@ -97,10 +100,11 @@ function Stop-WCSServiceManagerService {
 function Set-WCSBackground {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$EnvironmentName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$EnvironmentName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$WCSJavaApplicationGitRepositoryPath
     )
     begin {
-        $BackGroundSourcePath = "$(Get-WCSJavaApplicationGitRepositoryPath)\Background"
+        $BackGroundSourcePath = "$WCSJavaApplicationGitRepositoryPath\Background"
         $BackGroundPathLocal = "$(Get-WCSJavaApplicationRootDirectory)\Gif"
     }
     process {
@@ -259,10 +263,11 @@ function Add-PathToEnvironmentVariablePath {
 
 function Compress-QCSoftwarePath {
     param (
-        [Parameter(Mandatory)]$Path
+        [Parameter(Mandatory)]$Path,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath
     )
     $ZipFileName = "QcSoftware.zip"
-    $ZipFilePathRemote = "$(Get-WCSJavaApplicationGitRepositoryPath)\$ZipFileName"
+    $ZipFilePathRemote = "$WCSJavaApplicationGitRepositoryPath\$ZipFileName"
     Compress-Archive -Path $Path -DestinationPath $ZipFilePathRemote
 
     #$QCSoftwareFilesAndDirectoriesToZip = Get-ChildItem -Path $Path -Recurse |
@@ -280,11 +285,12 @@ function Compress-QCSoftwarePath {
 
 function Expand-QCSoftwareZipPackage {
     param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName        
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$WCSJavaApplicationGitRepositoryPath
     )
     begin {
         $ZipFileName = "QcSoftware.zip"
-        $ZipFilePathRemote = "$(Get-WCSJavaApplicationGitRepositoryPath)\$ZipFileName"
+        $ZipFilePathRemote = "$WCSJavaApplicationGitRepositoryPath\$ZipFileName"
         $ZipFileCopyPathLocal = "C:\ProgramData\TervisWCS\"
         $ExtractPath = Get-WCSJavaApplicationRootDirectory        
     }
@@ -350,9 +356,10 @@ function Remove-WCSServiceManager {
 
 function Get-QCPatcherUpdateZip {
     param (
-        [Parameter(Mandatory)]$UpdateFileName
+        [Parameter(Mandatory)]$UpdateFileName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath
     )
-    $UpdatesPath = "$(Get-WCSJavaApplicationGitRepositoryPath)\Updates"
+    $UpdatesPath = "$WCSJavaApplicationGitRepositoryPath\Updates"
     
     $ZipFile = Get-ChildItem -Filter "*.zip" -Path $UpdatesPath |
     Where Name -Match $UpdateFileName
@@ -396,11 +403,12 @@ function Invoke-QCPatcher {
 function Invoke-ProcessWCSTemplateFiles {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$EnvironmentName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$EnvironmentName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$WCSJavaApplicationGitRepositoryPath
     )
     begin {
         $RootDirectory = Get-WCSJavaApplicationRootDirectory
-        $TemplateFilesPath = "$(Get-WCSJavaApplicationGitRepositoryPath)\QcSoftware"
+        $TemplateFilesPath = "$WCSJavaApplicationGitRepositoryPath\QcSoftware"
     }
     process {
         $WCSEnvironmentState = Get-WCSEnvironmentState -EnvironmentName $EnvironmentName
