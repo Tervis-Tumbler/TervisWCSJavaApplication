@@ -375,6 +375,7 @@ function Invoke-QCPatcher {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
         [Parameter(Mandatory)]$UpdateFileName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath,
         [switch]$AcknowledgeWarning
     )
     begin {
@@ -386,7 +387,7 @@ function Invoke-QCPatcher {
     }
     process {
         $UpdatesPendingPathRemote =  $UpdatesPendingPath | ConvertTo-RemotePath -ComputerName $ComputerName
-        $ZipFileRemote = Get-QCPatcherUpdateZip -UpdateFileName $UpdateFileName
+        $ZipFileRemote = Get-QCPatcherUpdateZip -UpdateFileName $UpdateFileName -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath
         Copy-Item -Path $ZipFileRemote.FullName -Destination $UpdatesPendingPathRemote
 
         Invoke-Command -ComputerName $ComputerName -ScriptBlock {
