@@ -71,7 +71,7 @@ function New-WCSJavaApplicationFirewallRules {
 
 function Set-WCSJavaApplicationGitRepositoryPath {
     param (
-        $WCSJavaApplicationGitRepositoryPath
+        $Path
     )
     $Script:WCSJavaApplicationGitRepositoryPath = $WCSJavaApplicationGitRepositoryPath
 }
