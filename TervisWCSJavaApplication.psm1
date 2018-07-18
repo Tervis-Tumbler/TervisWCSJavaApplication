@@ -69,9 +69,19 @@ function New-WCSJavaApplicationFirewallRules {
     }
 }
 
+function Set-WCSJavaApplicationGitRepositoryPath {
+    param (
+        $WCSJavaApplicationGitRepositoryPath
+    )
+    $Script:WCSJavaApplicationGitRepositoryPath = $WCSJavaApplicationGitRepositoryPath
+}
+
 function Get-WCSJavaApplicationGitRepositoryPath {
-    $ADDomain = Get-ADDomain -Current LocalComputer
-    "\\$($ADDomain.DNSRoot)\applications\GitRepository\WCSJavaApplication"
+    if ($Script:WCSJavaApplicationGitRepositoryPath) {
+        $Script:WCSJavaApplicationGitRepositoryPath
+    } else {
+        throw "Must call Set-WCSJavaApplicationGitRepositoryPath to set the path to your local clone of the WCS Java Applicaiton Git Repository"
+    }
 }
 
 function Start-WCSServiceManagerService {
