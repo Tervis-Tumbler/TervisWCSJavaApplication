@@ -73,7 +73,7 @@ function Set-WCSJavaApplicationGitRepositoryPath {
     param (
         $Path
     )
-    $Script:WCSJavaApplicationGitRepositoryPath = $WCSJavaApplicationGitRepositoryPath
+    $Script:WCSJavaApplicationGitRepositoryPath = $Path
 }
 
 function Get-WCSJavaApplicationGitRepositoryPath {
