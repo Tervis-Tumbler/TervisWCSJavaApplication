@@ -52,8 +52,7 @@ function Set-WCSSystemParameterCS_ServerBasedOnNode {
         $ADDomain = Get-ADDomain
     }
     process {
-        $WCSEnvironmentState = Get-WCSEnvironmentState -EnvironmentName $EnvironmentName
-        Set-TervisWCSSystemParameterCS_Server -CS_Server "Progistics.$EnvironmentName.$($ADDomain.DNSRoot)" -PasswordID $WCSEnvironmentState.SybaseQCUserPasswordEntryID
+        Set-TervisWCSSystemParameterCS_Server -CS_Server "Progistics.$EnvironmentName.$($ADDomain.DNSRoot)" -EnvironmentName $EnvironmentName
     }
 }
 
