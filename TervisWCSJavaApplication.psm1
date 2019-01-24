@@ -19,6 +19,14 @@
     $Nodes | Install-WCSPrinters -PrintEngineOrientationRelativeToLabel Top
     $Nodes | Install-WCSPrinters -PrintEngineOrientationRelativeToLabel Bottom
     $Nodes | Install-WCSScheduledTasks
+    $Nodes | Install-GNUUtils
+}
+
+function Install-GNUUtils {
+    param (
+        [Parameter(ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    Read-Host "You need to install C:\QcSoftware\ThirdParty\gnu.utilities.exe"
 }
 
 function Update-QcSoftwareFiles {
